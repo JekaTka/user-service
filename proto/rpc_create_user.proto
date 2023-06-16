@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package pb;
+
+import "user.proto";
+
+option go_package = "github.com/JekaTka/user-service/pb";
+
+message CreateUserRequest {
+  string full_name = 1 [json_name = "full_name"];
+  string email = 2 [json_name = "email"];
+  string password = 3 [json_name = "password"];
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
