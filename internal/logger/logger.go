@@ -3,7 +3,6 @@ package logger
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"reflect"
@@ -18,6 +17,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/JekaTka/user-service/internal/config"
 )
 
 // ZeroLogger is an Fx event logger that logs events to Zero.
@@ -113,14 +114,14 @@ func (l *ZeroLogger) LogEvent(event fxevent.Event) {
 const timeFormat = time.RFC3339
 
 // NewLogger initialize and return zerolog.Logger
-func NewLogger() zerolog.Logger {
+func NewLogger(cfg *config.Config) zerolog.Logger {
 	zerolog.TimeFieldFormat = timeFormat
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: timeFormat}
 
-	var writers []io.Writer
-	writers = append(writers, consoleWriter)
-
-	log.Logger = log.Output(zerolog.MultiLevelWriter(writers...))
+	if cfg.Environment == config.ProdEnvironment {
+		log.Logger = log.With().Caller().Logger()
+		return log.Logger
+	}
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: timeFormat})
 
 	return log.Logger
 }

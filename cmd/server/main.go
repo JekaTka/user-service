@@ -14,13 +14,20 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/JekaTka/user-service/internal/config"
 	"github.com/JekaTka/user-service/internal/logger"
 	"github.com/JekaTka/user-service/pb"
 	"github.com/JekaTka/user-service/pkg/gapi"
 )
 
 func main() {
+	cfg, err := config.LoadConfig(".")
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot load config")
+	}
+
 	fx.New(
+		fx.Provide(func() *config.Config { return cfg }),
 		logger.Module,
 
 		fx.WithLogger(func(l *zerolog.Logger) fxevent.Logger {
