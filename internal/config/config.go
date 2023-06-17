@@ -14,6 +14,8 @@ type Config struct {
 	Environment       Environment `mapstructure:"ENVIRONMENT"`
 	HTTPServerAddress string      `mapstructure:"HTTP_SERVER_ADDRESS"`
 	GRPCServerAddress string      `mapstructure:"GRPC_SERVER_ADDRESS"`
+	DBSource          string      `mapstructure:"DB_SOURCE"`
+	MigrationURL      string      `mapstructure:"MIGRATION_URL"`
 }
 
 // LoadConfig reads configuration from file or environment variables.

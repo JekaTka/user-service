@@ -5,6 +5,9 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -37,14 +40,29 @@ func main() {
 		}),
 
 		fx.Provide(gapi.NewServer),
-		fx.Invoke(func(server *gapi.Server) {
-			go runGatewayServer(server)
-			runGrpcServer(server)
+		fx.Invoke(func(server *gapi.Server, cfg *config.Config) {
+			runDBMigration(cfg.MigrationURL, cfg.DBSource)
+
+			go runGatewayServer(server, cfg)
+			runGrpcServer(server, cfg)
 		}),
 	).Run()
 }
 
-func runGatewayServer(server *gapi.Server) {
+func runDBMigration(migrationURL string, dbSource string) {
+	migration, err := migrate.New(migrationURL, dbSource)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create new migrate instance")
+	}
+
+	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal().Err(err).Msg("failed to run migrate up")
+	}
+
+	log.Info().Msg("db migrated successfully")
+}
+
+func runGatewayServer(server *gapi.Server, cfg *config.Config) {
 	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{
 			UseProtoNames: true,
@@ -67,7 +85,7 @@ func runGatewayServer(server *gapi.Server) {
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
 
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", cfg.HTTPServerAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create listener")
 	}
@@ -80,13 +98,13 @@ func runGatewayServer(server *gapi.Server) {
 	}
 }
 
-func runGrpcServer(server *gapi.Server) {
+func runGrpcServer(server *gapi.Server, cfg *config.Config) {
 	grpcLogger := grpc.UnaryInterceptor(logger.GrpcLogger)
 	grpcServer := grpc.NewServer(grpcLogger)
 	pb.RegisterUserServiceServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
-	listener, err := net.Listen("tcp", ":8081")
+	listener, err := net.Listen("tcp", cfg.GRPCServerAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create listener")
 	}
