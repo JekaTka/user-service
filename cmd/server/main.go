@@ -9,6 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"go.uber.org/fx"
@@ -20,6 +21,7 @@ import (
 	"github.com/JekaTka/user-service/internal/config"
 	"github.com/JekaTka/user-service/internal/logger"
 	"github.com/JekaTka/user-service/pb"
+	db "github.com/JekaTka/user-service/pkg/db/sqlc"
 	"github.com/JekaTka/user-service/pkg/gapi"
 )
 
@@ -39,10 +41,20 @@ func main() {
 			}
 		}),
 
-		fx.Provide(gapi.NewServer),
-		fx.Invoke(func(server *gapi.Server, cfg *config.Config) {
+		fx.Provide(func(cfg *config.Config) db.Store {
 			runDBMigration(cfg.MigrationURL, cfg.DBSource)
 
+			connPool, err := pgxpool.New(context.Background(), cfg.DBSource)
+			if err != nil {
+				log.Fatal().Err(err).Msg("cannot connect to db")
+			}
+
+			store := db.NewStore(connPool)
+
+			return store
+		}),
+		fx.Provide(gapi.NewServer),
+		fx.Invoke(func(server *gapi.Server, cfg *config.Config) {
 			go runGatewayServer(server, cfg)
 			runGrpcServer(server, cfg)
 		}),

@@ -21,6 +21,9 @@ migratedown:
 new_migration:
 	migrate create -ext sql -dir pkg/db/migration -seq $(name)
 
+sqlc:
+	sqlc generate
+
 proto:
 	rm -f pb/*.go
 	rm -f doc/swagger/*.swagger.json
@@ -33,4 +36,4 @@ proto:
 evans:
 	evans --host localhost --port 9090 -r repl
 
-.PHONY: network postgres createdb dropdb migrateup migratedown new_migration proto evans
+.PHONY: network postgres createdb dropdb migrateup migratedown new_migration sqlc proto evans
