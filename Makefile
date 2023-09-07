@@ -36,4 +36,7 @@ proto:
 evans:
 	evans --host localhost --port 9090 -r repl
 
-.PHONY: network postgres createdb dropdb migrateup migratedown new_migration sqlc proto evans
+test:
+	go test -v -cover -short ./...
+
+.PHONY: network postgres createdb dropdb migrateup migratedown new_migration sqlc proto evans test
