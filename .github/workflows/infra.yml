@@ -2,13 +2,11 @@ name: "Terragrunt CI/CD Pipeline"
 
 on:
   push:
-    branches:
-      - main
+    branches: [ master ]
     paths:
       - 'infra/**'
   pull_request:
-    branches:
-      - main
+    branches: [ master ]
     paths:
       - 'infra/**'
 
