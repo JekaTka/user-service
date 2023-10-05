@@ -31,6 +31,8 @@ module "eks" {
     }
     kube-proxy = {
       most_recent = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
     vpc-cni = {
       most_recent = true
@@ -61,7 +63,7 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_groups = {
-    management = {
+    eks-node-group = {
       min_size     = var.mgmt_min_size
       max_size     = var.mgmt_max_size
       desired_size = var.mgmt_desired_size
@@ -82,7 +84,7 @@ module "eks" {
         }
       }
       labels = {
-        "node.k8s/role" = "management"
+        "node.k8s/role" = "eks-node-group"
       }
     }
   }
