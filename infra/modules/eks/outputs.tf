@@ -25,7 +25,7 @@ output "cluster_certificate_authority_data" {
 
 output "eks_mng_management_iam_role_arn" {
   description = "IAM Role ARN of EKS Managed Node group."
-  value       = module.eks.eks_managed_node_groups["management"].iam_role_arn
+  value       = module.eks.eks_managed_node_groups["eks-node-group"].iam_role_arn
 }
 
 output "oidc_provider_arn" {
