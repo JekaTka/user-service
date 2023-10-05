@@ -17,7 +17,7 @@ dependency "kms" {
 
 inputs = {
   ecr_name             = "dev/user-service"
-  image_tag_mutability = "IMMUTABLE"
+  image_tag_mutability = "MUTABLE"
   kms_key_id           = dependency.kms.outputs.kms_deployment_key_arn
 
   create_ecr_cache_repository         = false
